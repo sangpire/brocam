@@ -55,7 +55,42 @@ async function startCamera() {
   }
 }
 
+function capturePhoto() {
+  if (!stream || !videoEl.srcObject) {
+    setStatus("먼저 카메라를 시작해 주세요.");
+    return;
+  }
+
+  if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
+    setStatus("카메라 프레임을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+    return;
+  }
+
+  try {
+    captureCanvas.width = videoEl.videoWidth;
+    captureCanvas.height = videoEl.videoHeight;
+
+    const context = captureCanvas.getContext("2d");
+
+    if (!context) {
+      setStatus("캡처에 필요한 캔버스 컨텍스트를 가져올 수 없습니다.");
+      return;
+    }
+
+    context.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+
+    capturedPhoto.src = captureCanvas.toDataURL("image/png");
+    capturedPhoto.hidden = false;
+    captureEmpty.hidden = true;
+    setStatus("사진을 캡처했습니다.");
+  } catch (error) {
+    const errorName = error instanceof Error ? error.name : "UnknownError";
+    setStatus(`사진 캡처에 실패했습니다: ${errorName}`);
+  }
+}
+
 startButton.addEventListener("click", startCamera);
+captureButton.addEventListener("click", capturePhoto);
 
 window.addEventListener("beforeunload", () => {
   if (!stream) {
