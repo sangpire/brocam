@@ -106,6 +106,10 @@ button:disabled {
   display: block;
 }
 
+#captured-photo[hidden] {
+  display: none;
+}
+
 @media (max-width: 520px) {
   .controls {
     flex-direction: column;
