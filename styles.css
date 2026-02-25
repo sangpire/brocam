@@ -69,3 +69,18 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  flex: 1;
+}
+
+@media (max-width: 520px) {
+  .controls {
+    flex-direction: column;
+  }
+}
