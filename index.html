@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web Cam PWA - 1단계</title>
+    <title>Web Cam PWA - 2단계</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -26,6 +26,13 @@
         <button id="start-btn" type="button">카메라 시작</button>
         <button id="capture-btn" type="button" disabled>사진 캡처</button>
       </div>
+
+      <canvas id="capture-canvas" aria-hidden="true"></canvas>
+
+      <section id="capture-result" class="capture-result" aria-live="polite">
+        <p id="capture-empty">아직 캡처한 사진이 없습니다.</p>
+        <img id="captured-photo" alt="캡처한 사진" />
+      </section>
     </main>
 
     <script src="./app.js"></script>
