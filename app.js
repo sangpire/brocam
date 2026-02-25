@@ -1,8 +1,14 @@
 const statusEl = document.getElementById("status");
 const videoEl = document.getElementById("camera");
 const startButton = document.getElementById("start-btn");
+const captureButton = document.getElementById("capture-btn");
+const captureCanvas = document.getElementById("capture-canvas");
+const capturedPhoto = document.getElementById("captured-photo");
+const captureEmpty = document.getElementById("capture-empty");
 
 let stream;
+captureButton.disabled = true;
+capturedPhoto.hidden = true;
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -18,11 +24,13 @@ async function startCamera() {
   if (!isCameraSupported()) {
     setStatus("이 브라우저는 카메라 API(getUserMedia)를 지원하지 않습니다.");
     startButton.disabled = true;
+    captureButton.disabled = true;
     return;
   }
 
   setStatus("카메라 권한을 요청 중입니다...");
   startButton.disabled = true;
+  captureButton.disabled = true;
 
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -32,6 +40,7 @@ async function startCamera() {
 
     videoEl.srcObject = stream;
     setStatus("카메라가 연결되었습니다.");
+    captureButton.disabled = false;
   } catch (error) {
     if (error.name === "NotAllowedError") {
       setStatus("카메라 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해 주세요.");
@@ -42,6 +51,7 @@ async function startCamera() {
     }
 
     startButton.disabled = false;
+    captureButton.disabled = true;
   }
 }
 
@@ -55,4 +65,6 @@ window.addEventListener("beforeunload", () => {
   for (const track of stream.getTracks()) {
     track.stop();
   }
+
+  captureButton.disabled = true;
 });
