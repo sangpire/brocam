@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Cam PWA - 1단계</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>카메라 미리보기</h1>
+      <p id="status" class="status">카메라를 시작하려면 버튼을 누르세요.</p>
+
+      <div class="preview-wrap">
+        <video
+          id="camera"
+          class="preview"
+          autoplay
+          playsinline
+          muted
+          aria-label="카메라 미리보기"
+        ></video>
+      </div>
+
+      <button id="start-btn" type="button">카메라 시작</button>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

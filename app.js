@@ -1,0 +1,58 @@
+const statusEl = document.getElementById("status");
+const videoEl = document.getElementById("camera");
+const startButton = document.getElementById("start-btn");
+
+let stream;
+
+function setStatus(message) {
+  statusEl.textContent = message;
+}
+
+function isCameraSupported() {
+  return !!(
+    navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function"
+  );
+}
+
+async function startCamera() {
+  if (!isCameraSupported()) {
+    setStatus("이 브라우저는 카메라 API(getUserMedia)를 지원하지 않습니다.");
+    startButton.disabled = true;
+    return;
+  }
+
+  setStatus("카메라 권한을 요청 중입니다...");
+  startButton.disabled = true;
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false,
+    });
+
+    videoEl.srcObject = stream;
+    setStatus("카메라가 연결되었습니다.");
+  } catch (error) {
+    if (error.name === "NotAllowedError") {
+      setStatus("카메라 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해 주세요.");
+    } else if (error.name === "NotFoundError") {
+      setStatus("사용 가능한 카메라 장치를 찾을 수 없습니다.");
+    } else {
+      setStatus(`카메라 시작에 실패했습니다: ${error.name}`);
+    }
+
+    startButton.disabled = false;
+  }
+}
+
+startButton.addEventListener("click", startCamera);
+
+window.addEventListener("beforeunload", () => {
+  if (!stream) {
+    return;
+  }
+
+  for (const track of stream.getTracks()) {
+    track.stop();
+  }
+});
