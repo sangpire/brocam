@@ -1,0 +1,57 @@
+# Web Cam PWA (학습용)
+
+Vanilla HTML/CSS/JavaScript로 PWA 핵심 개념을 단계적으로 학습하기 위한 예제 프로젝트입니다.
+
+## 목표
+
+- `getUserMedia`로 카메라 접근 이해
+- `<canvas>` 기반 사진 캡처 이해
+- 이후 단계에서 PWA 필수 요소(Manifest, Service Worker, 오프라인) 확장
+
+## 현재 구현 상태
+
+- 1단계: 카메라 미리보기 (`<video>`)
+- 2단계: 사진 캡처 후 화면 표시 (`<canvas>` -> `<img>`, 최신 1장)
+
+## 실행 방법
+
+카메라 API는 `HTTPS` 또는 `localhost`에서 동작하므로, 로컬 서버로 실행해야 합니다.
+
+방법 1) `python3` 사용
+
+```bash
+cd /Users/sangpire/codes/web_cam
+python3 -m http.server 8080
+```
+
+방법 2) `npx` 사용
+
+```bash
+cd /Users/sangpire/codes/web_cam
+npx serve -l 8080
+```
+
+브라우저에서 `http://localhost:8080` 접속 후 아래 순서로 확인합니다.
+
+1. `카메라 시작` 클릭
+2. 권한 허용
+3. `사진 캡처` 클릭
+
+## 파일 구조
+
+- `index.html`: 화면 구조(비디오, 버튼, 캡처 결과 영역)
+- `styles.css`: 레이아웃/반응형/캡처 결과 스타일
+- `app.js`: 카메라 시작, 권한 처리, 캡처 로직
+
+## 동작 요약
+
+- 카메라 시작 성공 시 캡처 버튼 활성화
+- 캡처 시 현재 비디오 프레임을 캔버스에 그린 뒤 PNG 데이터 URL로 결과 이미지 표시
+- 권한 거부/장치 없음/미지원 브라우저 예외 메시지 처리
+
+## 다음 학습 단계(권장)
+
+1. `manifest.webmanifest` 추가
+2. `service worker` 등록 및 앱 셸 캐시
+3. 오프라인 동작 확인(DevTools Application 탭)
+4. 필요 시 IndexedDB 기반 캡처 이미지 저장
