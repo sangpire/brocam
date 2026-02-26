@@ -72,6 +72,15 @@ npx serve -l 8080
 배포 URL은 `https://<github-username>.github.io/web_cam/` 형태입니다.
 초기 배포 반영에는 보통 1~5분 정도 소요됩니다.
 
+### 배포 후 검증 체크리스트
+
+- [ ] 배포 URL 접속 시 `index.html`, `styles.css`, `app.js`, `manifest.webmanifest`가 정상 응답한다.
+- [ ] Chrome DevTools > Application > Manifest에서 앱 메타데이터와 아이콘(`192x192`, `512x512`)이 보인다.
+- [ ] Chrome DevTools > Application > Service Workers에서 `sw.js`가 등록/활성 상태다.
+- [ ] 온라인에서 1회 접속 후 Network를 `Offline`으로 바꾸고 새로고침해도 앱 셸이 열린다.
+- [ ] `카메라 시작` 버튼으로 권한 요청이 뜨고, 허용 시 미리보기/캡처가 동작한다.
+- [ ] 카메라 권한을 거부하면 안내 문구가 표시된다.
+
 ## 다음 학습 단계(권장)
 
 1. `manifest.webmanifest` 추가
