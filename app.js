@@ -89,8 +89,15 @@ function capturePhoto() {
   }
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+}
+
 startButton.addEventListener("click", startCamera);
 captureButton.addEventListener("click", capturePhoto);
+registerServiceWorker();
 
 window.addEventListener("beforeunload", () => {
   if (!stream) {
