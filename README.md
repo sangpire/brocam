@@ -37,6 +37,13 @@ npx serve -l 8080
 2. 권한 허용
 3. `사진 캡처` 클릭
 
+## Manifest/SW 점검 절차
+
+1. Chrome DevTools > Application > Manifest에서 앱 메타데이터 확인
+2. Chrome DevTools > Application > Service Workers에서 `sw.js` 등록/활성 상태 확인
+3. 온라인에서 1회 로드 후 DevTools > Network를 `Offline`으로 전환
+4. 새로고침 시 앱 셸(`index.html`, `styles.css`, `app.js`)이 캐시로 로드되는지 확인
+
 ## 파일 구조
 
 - `index.html`: 화면 구조(비디오, 버튼, 캡처 결과 영역)
