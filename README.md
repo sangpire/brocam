@@ -49,6 +49,12 @@ npx serve -l 8080
 - 캡처 시 현재 비디오 프레임을 캔버스에 그린 뒤 PNG 데이터 URL로 결과 이미지 표시
 - 권한 거부/장치 없음/미지원 브라우저 예외 메시지 처리
 
+## PWA 구성요소(3단계)
+
+- `manifest.webmanifest`: 앱 이름, 실행 방식, 테마 색상 등 메타데이터 정의
+- `sw.js`: 앱 셸 리소스 캐시 및 오프라인 대응을 위한 Service Worker
+- `app.js` 등록 로직: 지원 브라우저 + 보안 컨텍스트에서 Service Worker 등록
+
 ## 다음 학습 단계(권장)
 
 1. `manifest.webmanifest` 추가
