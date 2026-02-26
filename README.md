@@ -64,6 +64,14 @@ npx serve -l 8080
 
 ## GitHub Pages 준비
 
+1. GitHub 저장소를 만들고 이 프로젝트를 `main` 브랜치로 push합니다.
+2. 저장소의 `Settings > Pages`로 이동합니다.
+3. `Build and deployment`에서 `Deploy from a branch`를 선택합니다.
+4. Branch는 `main`, Folder는 `/ (root)`를 선택하고 저장합니다.
+
+배포 URL은 `https://<github-username>.github.io/web_cam/` 형태입니다.
+초기 배포 반영에는 보통 1~5분 정도 소요됩니다.
+
 ## 다음 학습 단계(권장)
 
 1. `manifest.webmanifest` 추가
