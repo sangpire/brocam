@@ -62,6 +62,8 @@ npx serve -l 8080
 - `sw.js`: 앱 셸 리소스 캐시 및 오프라인 대응을 위한 Service Worker
 - `app.js` 등록 로직: 지원 브라우저 + 보안 컨텍스트에서 Service Worker 등록
 
+## GitHub Pages 준비
+
 ## 다음 학습 단계(권장)
 
 1. `manifest.webmanifest` 추가
