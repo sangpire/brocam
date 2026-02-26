@@ -1,4 +1,6 @@
 {
   "name": "Web Cam PWA",
-  "short_name": "WebCam"
+  "short_name": "WebCam",
+  "start_url": "/",
+  "display": "standalone"
 }
