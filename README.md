@@ -1,4 +1,4 @@
-# Web Cam PWA (학습용)
+# brocam (학습용)
 
 Vanilla HTML/CSS/JavaScript로 PWA 핵심 개념을 단계적으로 학습하기 위한 예제 프로젝트입니다.
 
