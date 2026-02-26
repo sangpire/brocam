@@ -1,3 +1,5 @@
+const CACHE_NAME = "web-cam-shell-v1";
+
 self.addEventListener("install", (event) => {
   event.waitUntil(Promise.resolve());
 });
