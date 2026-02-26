@@ -101,7 +101,7 @@ function registerServiceWorker() {
     return;
   }
 
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
 startButton.addEventListener("click", startCamera);
