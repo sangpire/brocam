@@ -1,6 +1,6 @@
 {
-  "name": "Web Cam PWA",
-  "short_name": "WebCam",
+  "name": "brocam",
+  "short_name": "brocam",
   "start_url": "./",
   "scope": "./",
   "id": "./",
