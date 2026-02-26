@@ -8,7 +8,11 @@ const APP_SHELL_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(Promise.resolve());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(APP_SHELL_ASSETS);
+    })
+  );
 });
 
 self.addEventListener("activate", (event) => {
