@@ -69,7 +69,7 @@ npx serve -l 8080
 3. GitHub 저장소 `Settings > Pages`에서 `Build and deployment > Source`를 `GitHub Actions`로 선택합니다.
 4. `Actions` 탭에서 `Deploy GitHub Pages` 워크플로가 성공하면 배포 URL이 생성됩니다.
 
-배포 URL은 `https://<github-username>.github.io/brocam/` 형태입니다.
+현재는 `https://sangpire.github.io/brocam/` 에서 확인할 수 있습니다.
 초기 배포 반영에는 보통 1~5분 정도 소요됩니다.
 
 ### 배포 후 검증 체크리스트

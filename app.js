@@ -67,8 +67,31 @@ function capturePhoto() {
   }
 
   try {
-    captureCanvas.width = videoEl.videoWidth;
-    captureCanvas.height = videoEl.videoHeight;
+    const renderedWidth = videoEl.clientWidth;
+    const renderedHeight = videoEl.clientHeight;
+    const sourceWidth = videoEl.videoWidth;
+    const sourceHeight = videoEl.videoHeight;
+
+    let sx = 0;
+    let sy = 0;
+    let sWidth = sourceWidth;
+    let sHeight = sourceHeight;
+
+    if (renderedWidth > 0 && renderedHeight > 0) {
+      const renderedAspectRatio = renderedWidth / renderedHeight;
+      const sourceAspectRatio = sourceWidth / sourceHeight;
+
+      if (sourceAspectRatio > renderedAspectRatio) {
+        sWidth = sourceHeight * renderedAspectRatio;
+        sx = (sourceWidth - sWidth) / 2;
+      } else if (sourceAspectRatio < renderedAspectRatio) {
+        sHeight = sourceWidth / renderedAspectRatio;
+        sy = (sourceHeight - sHeight) / 2;
+      }
+    }
+
+    captureCanvas.width = Math.round(sWidth);
+    captureCanvas.height = Math.round(sHeight);
 
     const context = captureCanvas.getContext("2d");
 
@@ -77,7 +100,17 @@ function capturePhoto() {
       return;
     }
 
-    context.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+    context.drawImage(
+      videoEl,
+      sx,
+      sy,
+      sWidth,
+      sHeight,
+      0,
+      0,
+      captureCanvas.width,
+      captureCanvas.height
+    );
 
     capturedPhoto.src = captureCanvas.toDataURL("image/png");
     capturedPhoto.hidden = false;
