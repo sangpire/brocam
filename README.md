@@ -20,14 +20,14 @@ Vanilla HTML/CSS/JavaScript로 PWA 핵심 개념을 단계적으로 학습하기
 방법 1) `python3` 사용
 
 ```bash
-cd /Users/sangpire/codes/web_cam
+cd /Users/sangpire/codes/brocam
 python3 -m http.server 8080
 ```
 
 방법 2) `npx` 사용
 
 ```bash
-cd /Users/sangpire/codes/web_cam
+cd /Users/sangpire/codes/brocam
 npx serve -l 8080
 ```
 
@@ -62,14 +62,14 @@ npx serve -l 8080
 - `sw.js`: 앱 셸 리소스 캐시 및 오프라인 대응을 위한 Service Worker
 - `app.js` 등록 로직: 지원 브라우저 + 보안 컨텍스트에서 Service Worker 등록
 
-## GitHub Pages 준비
+## GitHub Pages 배포
 
-1. GitHub 저장소를 만들고 이 프로젝트를 `main` 브랜치로 push합니다.
-2. 저장소의 `Settings > Pages`로 이동합니다.
-3. `Build and deployment`에서 `Deploy from a branch`를 선택합니다.
-4. Branch는 `main`, Folder는 `/ (root)`를 선택하고 저장합니다.
+1. 저장소 루트에 `.github/workflows/deploy-pages.yml`이 있는지 확인합니다.
+2. `main` 브랜치로 push합니다.
+3. GitHub 저장소 `Settings > Pages`에서 `Build and deployment > Source`를 `GitHub Actions`로 선택합니다.
+4. `Actions` 탭에서 `Deploy GitHub Pages` 워크플로가 성공하면 배포 URL이 생성됩니다.
 
-배포 URL은 `https://<github-username>.github.io/web_cam/` 형태입니다.
+배포 URL은 `https://<github-username>.github.io/brocam/` 형태입니다.
 초기 배포 반영에는 보통 1~5분 정도 소요됩니다.
 
 ### 배포 후 검증 체크리스트
