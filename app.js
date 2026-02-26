@@ -100,6 +100,8 @@ function registerServiceWorker() {
   if (location.protocol !== "https:" && !isLocalhost) {
     return;
   }
+
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
 startButton.addEventListener("click", startCamera);
