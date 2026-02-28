@@ -186,6 +186,25 @@ function registerServiceWorker() {
 
 startButton.addEventListener("click", startCamera);
 captureButton.addEventListener("click", capturePhoto);
+
+downloadBtn.addEventListener("click", () => {
+  captureCanvas.toBlob((blob) => {
+    if (!blob) {
+      setStatus("이미지 다운로드를 준비할 수 없습니다.");
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = generateFilename();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  });
+});
+
 registerServiceWorker();
 
 window.addEventListener("beforeunload", () => {
