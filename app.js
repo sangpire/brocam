@@ -6,14 +6,28 @@ const captureButton = document.getElementById("capture-btn");
 const captureCanvas = document.getElementById("capture-canvas");
 const capturedPhoto = document.getElementById("captured-photo");
 const captureEmpty = document.getElementById("capture-empty");
+const downloadBtn = document.getElementById("download-btn");
 
 let stream;
 let cleanupVideoReadyListeners = null;
 captureButton.disabled = true;
 capturedPhoto.hidden = true;
+downloadBtn.hidden = true;
 
 function setStatus(message) {
   statusEl.textContent = message;
+}
+
+function generateFilename() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  return `brocam-${year}${month}${day}-${hours}${minutes}${seconds}.png`;
 }
 
 function isCameraSupported() {
