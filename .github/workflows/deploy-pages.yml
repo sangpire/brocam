@@ -25,6 +25,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Update Service Worker Cache Name
+        env:
+          CACHE_VERSION: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          sed -i "s/^const CACHE_NAME = \".*\";/const CACHE_NAME = \"web-cam-shell-${CACHE_VERSION}\";/" sw.js
+          grep "^const CACHE_NAME" sw.js
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
