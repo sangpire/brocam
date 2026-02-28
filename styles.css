@@ -111,6 +111,16 @@ button:disabled {
   display: none;
 }
 
+#download-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+}
+
+#download-btn[hidden] {
+  display: none;
+}
+
 @media (max-width: 520px) {
   .controls {
     flex-direction: column;
