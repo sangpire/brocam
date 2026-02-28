@@ -1,5 +1,6 @@
 const statusEl = document.getElementById("status");
 const videoEl = document.getElementById("camera");
+const previewWrap = document.querySelector(".preview-wrap");
 const startButton = document.getElementById("start-btn");
 const captureButton = document.getElementById("capture-btn");
 const captureCanvas = document.getElementById("capture-canvas");
@@ -39,6 +40,21 @@ async function startCamera() {
     });
 
     videoEl.srcObject = stream;
+    videoEl.addEventListener(
+      "loadedmetadata",
+      () => {
+        if (!previewWrap) {
+          return;
+        }
+
+        const { videoWidth, videoHeight } = videoEl;
+
+        if (videoWidth > 0 && videoHeight > 0) {
+          previewWrap.style.aspectRatio = `${videoWidth} / ${videoHeight}`;
+        }
+      },
+      { once: true }
+    );
     setStatus("카메라가 연결되었습니다.");
     captureButton.disabled = false;
   } catch (error) {
@@ -67,31 +83,11 @@ function capturePhoto() {
   }
 
   try {
-    const renderedWidth = videoEl.clientWidth;
-    const renderedHeight = videoEl.clientHeight;
     const sourceWidth = videoEl.videoWidth;
     const sourceHeight = videoEl.videoHeight;
 
-    let sx = 0;
-    let sy = 0;
-    let sWidth = sourceWidth;
-    let sHeight = sourceHeight;
-
-    if (renderedWidth > 0 && renderedHeight > 0) {
-      const renderedAspectRatio = renderedWidth / renderedHeight;
-      const sourceAspectRatio = sourceWidth / sourceHeight;
-
-      if (sourceAspectRatio > renderedAspectRatio) {
-        sWidth = sourceHeight * renderedAspectRatio;
-        sx = (sourceWidth - sWidth) / 2;
-      } else if (sourceAspectRatio < renderedAspectRatio) {
-        sHeight = sourceWidth / renderedAspectRatio;
-        sy = (sourceHeight - sHeight) / 2;
-      }
-    }
-
-    captureCanvas.width = Math.round(sWidth);
-    captureCanvas.height = Math.round(sHeight);
+    captureCanvas.width = sourceWidth;
+    captureCanvas.height = sourceHeight;
 
     const context = captureCanvas.getContext("2d");
 
@@ -100,17 +96,7 @@ function capturePhoto() {
       return;
     }
 
-    context.drawImage(
-      videoEl,
-      sx,
-      sy,
-      sWidth,
-      sHeight,
-      0,
-      0,
-      captureCanvas.width,
-      captureCanvas.height
-    );
+    context.drawImage(videoEl, 0, 0, sourceWidth, sourceHeight);
 
     capturedPhoto.src = captureCanvas.toDataURL("image/png");
     capturedPhoto.hidden = false;
