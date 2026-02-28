@@ -161,6 +161,7 @@ function capturePhoto() {
     capturedPhoto.src = captureCanvas.toDataURL("image/png");
     capturedPhoto.hidden = false;
     captureEmpty.hidden = true;
+    downloadBtn.hidden = false;
     setStatus("사진을 캡처했습니다.");
   } catch (error) {
     const errorName = error instanceof Error ? error.name : "UnknownError";
