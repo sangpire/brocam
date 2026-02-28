@@ -8,6 +8,7 @@ const capturedPhoto = document.getElementById("captured-photo");
 const captureEmpty = document.getElementById("capture-empty");
 
 let stream;
+let cleanupVideoReadyListeners = null;
 captureButton.disabled = true;
 capturedPhoto.hidden = true;
 
@@ -19,6 +20,64 @@ function isCameraSupported() {
   return !!(
     navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function"
   );
+}
+
+function syncPreviewAspectRatio() {
+  if (!previewWrap) {
+    return false;
+  }
+
+  const { videoWidth, videoHeight } = videoEl;
+
+  if (videoWidth === 0 || videoHeight === 0) {
+    return false;
+  }
+
+  previewWrap.style.aspectRatio = `${videoWidth} / ${videoHeight}`;
+  return true;
+}
+
+function setupVideoReadySync() {
+  if (cleanupVideoReadyListeners) {
+    cleanupVideoReadyListeners();
+    cleanupVideoReadyListeners = null;
+  }
+
+  const eventNames = ["loadedmetadata", "loadeddata", "canplay"];
+  let timeoutId = window.setTimeout(() => {
+    cleanup();
+  }, 5000);
+
+  const handleVideoReady = () => {
+    if (!syncPreviewAspectRatio()) {
+      return;
+    }
+
+    cleanup();
+  };
+
+  const cleanup = () => {
+    for (const eventName of eventNames) {
+      videoEl.removeEventListener(eventName, handleVideoReady);
+    }
+
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+
+    if (cleanupVideoReadyListeners === cleanup) {
+      cleanupVideoReadyListeners = null;
+    }
+  };
+
+  cleanupVideoReadyListeners = cleanup;
+
+  for (const eventName of eventNames) {
+    videoEl.addEventListener(eventName, handleVideoReady);
+  }
+
+  handleVideoReady();
 }
 
 async function startCamera() {
@@ -40,21 +99,8 @@ async function startCamera() {
     });
 
     videoEl.srcObject = stream;
-    videoEl.addEventListener(
-      "loadedmetadata",
-      () => {
-        if (!previewWrap) {
-          return;
-        }
+    setupVideoReadySync();
 
-        const { videoWidth, videoHeight } = videoEl;
-
-        if (videoWidth > 0 && videoHeight > 0) {
-          previewWrap.style.aspectRatio = `${videoWidth} / ${videoHeight}`;
-        }
-      },
-      { once: true }
-    );
     setStatus("카메라가 연결되었습니다.");
     captureButton.disabled = false;
   } catch (error) {
@@ -128,6 +174,11 @@ captureButton.addEventListener("click", capturePhoto);
 registerServiceWorker();
 
 window.addEventListener("beforeunload", () => {
+  if (cleanupVideoReadyListeners) {
+    cleanupVideoReadyListeners();
+    cleanupVideoReadyListeners = null;
+  }
+
   if (!stream) {
     return;
   }
