@@ -3,6 +3,7 @@ const APP_SHELL_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./db.js",
   "./app.js",
   "./manifest.webmanifest",
 ];

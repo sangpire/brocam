@@ -4,15 +4,12 @@ const previewWrap = document.querySelector(".preview-wrap");
 const startButton = document.getElementById("start-btn");
 const captureButton = document.getElementById("capture-btn");
 const captureCanvas = document.getElementById("capture-canvas");
-const capturedPhoto = document.getElementById("captured-photo");
-const captureEmpty = document.getElementById("capture-empty");
-const downloadBtn = document.getElementById("download-btn");
+const galleryGrid = document.getElementById("gallery-grid");
+const galleryEmpty = document.getElementById("gallery-empty");
 
 let stream;
 let cleanupVideoReadyListeners = null;
 captureButton.disabled = true;
-capturedPhoto.hidden = true;
-downloadBtn.hidden = true;
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -158,14 +155,99 @@ function capturePhoto() {
 
     context.drawImage(videoEl, 0, 0, sourceWidth, sourceHeight);
 
-    capturedPhoto.src = captureCanvas.toDataURL("image/png");
-    capturedPhoto.hidden = false;
-    captureEmpty.hidden = true;
-    downloadBtn.hidden = false;
-    setStatus("사진을 캡처했습니다.");
+    captureCanvas.toBlob((blob) => {
+      if (!blob) {
+        setStatus("사진 캡처에 실패했습니다.");
+        return;
+      }
+
+      savePhoto(blob)
+        .then((id) => {
+          addGalleryItem(id, blob);
+          galleryEmpty.hidden = true;
+          setStatus("사진을 캡처하여 저장했습니다.");
+        })
+        .catch(() => {
+          setStatus("사진 저장에 실패했습니다.");
+        });
+    }, "image/png");
   } catch (error) {
     const errorName = error instanceof Error ? error.name : "UnknownError";
     setStatus(`사진 캡처에 실패했습니다: ${errorName}`);
+  }
+}
+
+function addGalleryItem(id, blob) {
+  const url = URL.createObjectURL(blob);
+
+  const item = document.createElement("div");
+  item.className = "gallery-item";
+  item.dataset.id = id;
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.alt = "캡처한 사진";
+
+  const actions = document.createElement("div");
+  actions.className = "gallery-item-actions";
+
+  const dlBtn = document.createElement("button");
+  dlBtn.type = "button";
+  dlBtn.textContent = "저장";
+  dlBtn.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = generateFilename();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "delete-btn";
+  delBtn.textContent = "삭제";
+  delBtn.addEventListener("click", () => {
+    deletePhoto(id)
+      .then(() => {
+        URL.revokeObjectURL(url);
+        item.remove();
+        updateGalleryEmptyState();
+        setStatus("사진을 삭제했습니다.");
+      })
+      .catch(() => {
+        setStatus("사진 삭제에 실패했습니다.");
+      });
+  });
+
+  actions.appendChild(dlBtn);
+  actions.appendChild(delBtn);
+  item.appendChild(img);
+  item.appendChild(actions);
+
+  galleryGrid.prepend(item);
+}
+
+function updateGalleryEmptyState() {
+  galleryEmpty.hidden = galleryGrid.children.length > 0;
+}
+
+async function loadGallery() {
+  try {
+    const photos = await getAllPhotos();
+
+    if (photos.length === 0) {
+      galleryEmpty.hidden = false;
+      return;
+    }
+
+    galleryEmpty.hidden = true;
+
+    for (const photo of photos.reverse()) {
+      addGalleryItem(photo.id, photo.blob);
+    }
+  } catch {
+    // IndexedDB를 사용할 수 없는 환경에서는 갤러리를 비워둠
   }
 }
 
@@ -187,25 +269,8 @@ function registerServiceWorker() {
 startButton.addEventListener("click", startCamera);
 captureButton.addEventListener("click", capturePhoto);
 
-downloadBtn.addEventListener("click", () => {
-  captureCanvas.toBlob((blob) => {
-    if (!blob) {
-      setStatus("이미지 다운로드를 준비할 수 없습니다.");
-      return;
-    }
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = generateFilename();
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  });
-});
-
 registerServiceWorker();
+loadGallery();
 
 window.addEventListener("beforeunload", () => {
   if (cleanupVideoReadyListeners) {
