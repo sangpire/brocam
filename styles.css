@@ -85,40 +85,60 @@ button:disabled {
   display: none;
 }
 
-.capture-result {
-  min-height: 56px;
+.gallery {
   padding: 12px;
   border: 1px solid #e4e7ec;
   border-radius: 12px;
   background: #f8fafc;
 }
 
-#capture-empty {
+.gallery h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.gallery-empty {
   margin: 0;
   color: #667085;
   font-size: 0.95rem;
 }
 
-#captured-photo {
-  width: 100%;
-  height: auto;
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.gallery-item {
+  position: relative;
   border-radius: 10px;
+  overflow: hidden;
   border: 1px solid #d0d5dd;
-  display: block;
+  background: #fff;
 }
 
-#captured-photo[hidden] {
-  display: none;
-}
-
-#download-btn {
-  display: block;
+.gallery-item img {
   width: 100%;
-  margin-top: 12px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
 }
 
-#download-btn[hidden] {
-  display: none;
+.gallery-item-actions {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+.gallery-item-actions button {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.75rem;
+  border-radius: 6px;
+}
+
+.gallery-item-actions .delete-btn {
+  background: #d92d20;
 }
 
 @media (max-width: 520px) {

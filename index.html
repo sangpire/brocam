@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f62fe" />
-    <title>brocam - 2단계</title>
+    <title>brocam</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -31,13 +31,14 @@
 
       <canvas id="capture-canvas" aria-hidden="true"></canvas>
 
-      <section id="capture-result" class="capture-result" aria-live="polite">
-        <p id="capture-empty">아직 캡처한 사진이 없습니다.</p>
-        <img id="captured-photo" alt="캡처한 사진" hidden />
-        <button id="download-btn" type="button" hidden>다운로드</button>
+      <section id="gallery" class="gallery" aria-label="저장된 사진 갤러리">
+        <h2>저장된 사진</h2>
+        <p id="gallery-empty" class="gallery-empty">아직 저장된 사진이 없습니다.</p>
+        <div id="gallery-grid" class="gallery-grid"></div>
       </section>
     </main>
 
+    <script src="./db.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
