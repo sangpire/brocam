@@ -1,19 +1,61 @@
 const statusEl = document.getElementById("status");
 const videoEl = document.getElementById("camera");
-const previewWrap = document.querySelector(".preview-wrap");
-const startButton = document.getElementById("start-btn");
-const captureButton = document.getElementById("capture-btn");
+const cameraPlaceholder = document.getElementById("camera-placeholder");
+const shutterBtn = document.getElementById("shutter-btn");
+const switchCameraBtn = document.getElementById("switch-camera-btn");
+const flashOverlay = document.getElementById("flash-overlay");
 const captureCanvas = document.getElementById("capture-canvas");
 const galleryGrid = document.getElementById("gallery-grid");
 const galleryEmpty = document.getElementById("gallery-empty");
+const photoCount = document.getElementById("photo-count");
+const tabBarItems = document.querySelectorAll(".tab-bar-item");
+
+// 사진 뷰어 요소
+const photoViewer = document.getElementById("photo-viewer");
+const viewerImage = document.getElementById("viewer-image");
+const viewerClose = document.getElementById("viewer-close");
+const viewerDownload = document.getElementById("viewer-download");
+const viewerDelete = document.getElementById("viewer-delete");
 
 let stream;
 let cleanupVideoReadyListeners = null;
-captureButton.disabled = true;
+let currentFacingMode = "environment";
+let currentViewerPhotoId = null;
+let currentViewerUrl = null;
 
-function setStatus(message) {
+shutterBtn.disabled = true;
+
+// ── 상태 표시 ──
+
+function setStatus(message, type) {
   statusEl.textContent = message;
+  statusEl.className = "status-badge";
+  if (type) {
+    statusEl.classList.add(type);
+  }
 }
+
+// ── 탭 전환 ──
+
+function switchTab(tabName) {
+  document.querySelectorAll(".tab-view").forEach((view) => {
+    view.classList.remove("active");
+  });
+  tabBarItems.forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  document.getElementById(`tab-${tabName}`).classList.add("active");
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add("active");
+}
+
+tabBarItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    switchTab(item.dataset.tab);
+  });
+});
+
+// ── 파일명 생성 ──
 
 function generateFilename() {
   const now = new Date();
@@ -27,6 +69,8 @@ function generateFilename() {
   return `brocam-${year}${month}${day}-${hours}${minutes}${seconds}.png`;
 }
 
+// ── 카메라 ──
+
 function isCameraSupported() {
   return !!(
     navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function"
@@ -34,17 +78,7 @@ function isCameraSupported() {
 }
 
 function syncPreviewAspectRatio() {
-  if (!previewWrap) {
-    return false;
-  }
-
-  const { videoWidth, videoHeight } = videoEl;
-
-  if (videoWidth === 0 || videoHeight === 0) {
-    return false;
-  }
-
-  previewWrap.style.aspectRatio = `${videoWidth} / ${videoHeight}`;
+  // 앱 스타일에서는 전체 화면을 채우므로 별도 비율 조정 불필요
   return true;
 }
 
@@ -60,10 +94,9 @@ function setupVideoReadySync() {
   }, 5000);
 
   const handleVideoReady = () => {
-    if (!syncPreviewAspectRatio()) {
+    if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
       return;
     }
-
     cleanup();
   };
 
@@ -93,49 +126,64 @@ function setupVideoReadySync() {
 
 async function startCamera() {
   if (!isCameraSupported()) {
-    setStatus("이 브라우저는 카메라 API(getUserMedia)를 지원하지 않습니다.");
-    startButton.disabled = true;
-    captureButton.disabled = true;
+    setStatus("미지원", "error");
+    shutterBtn.disabled = true;
     return;
   }
 
-  setStatus("카메라 권한을 요청 중입니다...");
-  startButton.disabled = true;
-  captureButton.disabled = true;
+  setStatus("연결 중...");
+  shutterBtn.disabled = true;
 
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
+      video: { facingMode: currentFacingMode },
       audio: false,
     });
 
     videoEl.srcObject = stream;
     setupVideoReadySync();
 
-    setStatus("카메라가 연결되었습니다.");
-    captureButton.disabled = false;
+    cameraPlaceholder.classList.add("hidden");
+    setStatus("촬영 준비", "connected");
+    shutterBtn.disabled = false;
   } catch (error) {
     if (error.name === "NotAllowedError") {
-      setStatus("카메라 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해 주세요.");
+      setStatus("권한 거부", "error");
     } else if (error.name === "NotFoundError") {
-      setStatus("사용 가능한 카메라 장치를 찾을 수 없습니다.");
+      setStatus("카메라 없음", "error");
     } else {
-      setStatus(`카메라 시작에 실패했습니다: ${error.name}`);
+      setStatus("연결 실패", "error");
     }
 
-    startButton.disabled = false;
-    captureButton.disabled = true;
+    shutterBtn.disabled = true;
   }
+}
+
+async function switchCamera() {
+  if (stream) {
+    for (const track of stream.getTracks()) {
+      track.stop();
+    }
+  }
+
+  currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+  await startCamera();
+}
+
+// ── 사진 촬영 ──
+
+function triggerFlash() {
+  flashOverlay.classList.remove("flash");
+  void flashOverlay.offsetWidth; // reflow
+  flashOverlay.classList.add("flash");
 }
 
 function capturePhoto() {
   if (!stream || !videoEl.srcObject) {
-    setStatus("먼저 카메라를 시작해 주세요.");
     return;
   }
 
   if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
-    setStatus("카메라 프레임을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
     return;
   }
 
@@ -149,15 +197,14 @@ function capturePhoto() {
     const context = captureCanvas.getContext("2d");
 
     if (!context) {
-      setStatus("캡처에 필요한 캔버스 컨텍스트를 가져올 수 없습니다.");
       return;
     }
 
     context.drawImage(videoEl, 0, 0, sourceWidth, sourceHeight);
+    triggerFlash();
 
     captureCanvas.toBlob((blob) => {
       if (!blob) {
-        setStatus("사진 캡처에 실패했습니다.");
         return;
       }
 
@@ -165,17 +212,18 @@ function capturePhoto() {
         .then((id) => {
           addGalleryItem(id, blob);
           galleryEmpty.hidden = true;
-          setStatus("사진을 캡처하여 저장했습니다.");
+          updatePhotoCount();
         })
         .catch(() => {
-          setStatus("사진 저장에 실패했습니다.");
+          setStatus("저장 실패", "error");
         });
     }, "image/png");
-  } catch (error) {
-    const errorName = error instanceof Error ? error.name : "UnknownError";
-    setStatus(`사진 캡처에 실패했습니다: ${errorName}`);
+  } catch {
+    setStatus("촬영 실패", "error");
   }
 }
+
+// ── 갤러리 ──
 
 function addGalleryItem(id, blob) {
   const url = URL.createObjectURL(blob);
@@ -188,48 +236,18 @@ function addGalleryItem(id, blob) {
   img.src = url;
   img.alt = "캡처한 사진";
 
-  const actions = document.createElement("div");
-  actions.className = "gallery-item-actions";
-
-  const dlBtn = document.createElement("button");
-  dlBtn.type = "button";
-  dlBtn.textContent = "저장";
-  dlBtn.addEventListener("click", () => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = generateFilename();
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  item.addEventListener("click", () => {
+    openViewer(id, url);
   });
 
-  const delBtn = document.createElement("button");
-  delBtn.type = "button";
-  delBtn.className = "delete-btn";
-  delBtn.textContent = "삭제";
-  delBtn.addEventListener("click", () => {
-    deletePhoto(id)
-      .then(() => {
-        URL.revokeObjectURL(url);
-        item.remove();
-        updateGalleryEmptyState();
-        setStatus("사진을 삭제했습니다.");
-      })
-      .catch(() => {
-        setStatus("사진 삭제에 실패했습니다.");
-      });
-  });
-
-  actions.appendChild(dlBtn);
-  actions.appendChild(delBtn);
   item.appendChild(img);
-  item.appendChild(actions);
-
   galleryGrid.prepend(item);
 }
 
-function updateGalleryEmptyState() {
-  galleryEmpty.hidden = galleryGrid.children.length > 0;
+function updatePhotoCount() {
+  const count = galleryGrid.children.length;
+  photoCount.textContent = `${count}장`;
+  galleryEmpty.hidden = count > 0;
 }
 
 async function loadGallery() {
@@ -238,6 +256,7 @@ async function loadGallery() {
 
     if (photos.length === 0) {
       galleryEmpty.hidden = false;
+      updatePhotoCount();
       return;
     }
 
@@ -246,10 +265,63 @@ async function loadGallery() {
     for (const photo of photos.reverse()) {
       addGalleryItem(photo.id, photo.blob);
     }
+
+    updatePhotoCount();
   } catch {
     // IndexedDB를 사용할 수 없는 환경에서는 갤러리를 비워둠
   }
 }
+
+// ── 사진 뷰어 ──
+
+function openViewer(id, url) {
+  currentViewerPhotoId = id;
+  currentViewerUrl = url;
+  viewerImage.src = url;
+  photoViewer.classList.add("open");
+}
+
+function closeViewer() {
+  photoViewer.classList.remove("open");
+  currentViewerPhotoId = null;
+  currentViewerUrl = null;
+}
+
+viewerClose.addEventListener("click", closeViewer);
+
+viewerDownload.addEventListener("click", () => {
+  if (!currentViewerUrl) return;
+  const link = document.createElement("a");
+  link.href = currentViewerUrl;
+  link.download = generateFilename();
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+viewerDelete.addEventListener("click", () => {
+  if (currentViewerPhotoId === null) return;
+  const id = currentViewerPhotoId;
+  const url = currentViewerUrl;
+
+  deletePhoto(id)
+    .then(() => {
+      const item = galleryGrid.querySelector(`[data-id="${id}"]`);
+      if (item) {
+        item.remove();
+      }
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+      updatePhotoCount();
+      closeViewer();
+    })
+    .catch(() => {
+      // 삭제 실패 시 뷰어 유지
+    });
+});
+
+// ── 서비스 워커 ──
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) {
@@ -266,11 +338,16 @@ function registerServiceWorker() {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
-startButton.addEventListener("click", startCamera);
-captureButton.addEventListener("click", capturePhoto);
+// ── 이벤트 바인딩 ──
+
+shutterBtn.addEventListener("click", capturePhoto);
+switchCameraBtn.addEventListener("click", switchCamera);
+
+// ── 초기화 ──
 
 registerServiceWorker();
 loadGallery();
+startCamera();
 
 window.addEventListener("beforeunload", () => {
   if (cleanupVideoReadyListeners) {
@@ -286,5 +363,5 @@ window.addEventListener("beforeunload", () => {
     track.stop();
   }
 
-  captureButton.disabled = true;
+  shutterBtn.disabled = true;
 });
