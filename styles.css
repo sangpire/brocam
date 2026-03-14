@@ -402,8 +402,40 @@ html, body {
   display: none;
 }
 
-/* ── 데스크톱에서 최대 너비 제한 ── */
-@media (min-width: 481px) {
+/* ── 가로 모드 안내 오버레이 (모바일/태블릿) ── */
+.landscape-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.landscape-overlay svg {
+  animation: rotate-hint 2s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .landscape-overlay {
+    display: flex;
+  }
+}
+
+/* ── 데스크톱에서 최대 너비 제한 (iPad 제외) ── */
+@media (min-width: 1025px) {
   .app {
     max-width: 430px;
     left: 50%;
@@ -420,5 +452,16 @@ html, body {
 
   .photo-viewer.open {
     transform: translateX(-50%) translateY(0);
+  }
+
+  .landscape-overlay {
+    display: none !important;
+  }
+}
+
+/* ── 태블릿 갤러리 그리드 (iPad 등) ── */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
