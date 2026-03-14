@@ -187,6 +187,30 @@ html, body {
   background: #fff;
 }
 
+/* ── 마지막 사진 썸네일 ── */
+.last-photo-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: var(--surface);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+
+.last-photo-btn:active {
+  transform: scale(0.92);
+}
+
+.last-photo-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .icon-btn {
   width: 40px;
   height: 40px;

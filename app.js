@@ -17,13 +17,29 @@ const viewerClose = document.getElementById("viewer-close");
 const viewerDownload = document.getElementById("viewer-download");
 const viewerDelete = document.getElementById("viewer-delete");
 
+const lastPhotoBtn = document.getElementById("last-photo-btn");
+const lastPhotoThumb = document.getElementById("last-photo-thumb");
+
 let stream;
 let cleanupVideoReadyListeners = null;
 let currentFacingMode = "environment";
 let currentViewerPhotoId = null;
 let currentViewerUrl = null;
+let lastPhotoId = null;
+let lastPhotoUrl = null;
 
 shutterBtn.disabled = true;
+
+// ── 화면 세로 고정 ──
+
+function lockPortrait() {
+  const orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+  if (orientation && typeof orientation.lock === "function") {
+    orientation.lock("portrait").catch(() => {});
+  }
+}
+
+lockPortrait();
 
 // ── 상태 표시 ──
 
@@ -213,6 +229,7 @@ function capturePhoto() {
           addGalleryItem(id, blob);
           galleryEmpty.hidden = true;
           updatePhotoCount();
+          updateLastPhotoThumb(id, blob);
         })
         .catch(() => {
           setStatus("저장 실패", "error");
@@ -262,15 +279,38 @@ async function loadGallery() {
 
     galleryEmpty.hidden = true;
 
-    for (const photo of photos.reverse()) {
+    const sorted = photos.reverse();
+    for (const photo of sorted) {
       addGalleryItem(photo.id, photo.blob);
     }
 
     updatePhotoCount();
+
+    if (sorted.length > 0) {
+      updateLastPhotoThumb(sorted[0].id, sorted[0].blob);
+    }
   } catch {
     // IndexedDB를 사용할 수 없는 환경에서는 갤러리를 비워둠
   }
 }
+
+// ── 마지막 사진 썸네일 ──
+
+function updateLastPhotoThumb(id, blob) {
+  if (lastPhotoUrl) {
+    URL.revokeObjectURL(lastPhotoUrl);
+  }
+  lastPhotoUrl = URL.createObjectURL(blob);
+  lastPhotoId = id;
+  lastPhotoThumb.src = lastPhotoUrl;
+  lastPhotoBtn.hidden = false;
+}
+
+lastPhotoBtn.addEventListener("click", () => {
+  if (lastPhotoId !== null && lastPhotoUrl) {
+    openViewer(lastPhotoId, lastPhotoUrl);
+  }
+});
 
 // ── 사진 뷰어 ──
 
@@ -315,6 +355,22 @@ viewerDelete.addEventListener("click", () => {
       }
       updatePhotoCount();
       closeViewer();
+
+      // 삭제된 사진이 마지막 썸네일이면 갱신
+      if (lastPhotoId === id) {
+        const firstItem = galleryGrid.querySelector(".gallery-item");
+        if (firstItem) {
+          const firstImg = firstItem.querySelector("img");
+          lastPhotoId = Number(firstItem.dataset.id);
+          if (lastPhotoUrl) URL.revokeObjectURL(lastPhotoUrl);
+          lastPhotoUrl = firstImg.src;
+          lastPhotoThumb.src = lastPhotoUrl;
+        } else {
+          lastPhotoId = null;
+          lastPhotoUrl = null;
+          lastPhotoBtn.hidden = true;
+        }
+      }
     })
     .catch(() => {
       // 삭제 실패 시 뷰어 유지
