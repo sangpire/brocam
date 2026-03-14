@@ -66,6 +66,39 @@ html, body {
   letter-spacing: -0.02em;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.camera-select {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.camera-select:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .status-badge {
   font-size: 0.75rem;
   font-weight: 500;

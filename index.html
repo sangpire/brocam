@@ -16,7 +16,12 @@
       <div id="tab-camera" class="tab-view active">
         <header class="app-header">
           <span class="app-title">brocam</span>
-          <span id="status" class="status-badge">준비</span>
+          <div class="header-right">
+            <select id="camera-select" class="camera-select" aria-label="카메라 선택" disabled>
+              <option value="">카메라 로딩...</option>
+            </select>
+            <span id="status" class="status-badge">준비</span>
+          </div>
         </header>
 
         <div class="camera-area">
