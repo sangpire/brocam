@@ -17,12 +17,14 @@ const viewerClose = document.getElementById("viewer-close");
 const viewerDownload = document.getElementById("viewer-download");
 const viewerDelete = document.getElementById("viewer-delete");
 
+const cameraSelect = document.getElementById("camera-select");
 const lastPhotoBtn = document.getElementById("last-photo-btn");
 const lastPhotoThumb = document.getElementById("last-photo-thumb");
 
 let stream;
 let cleanupVideoReadyListeners = null;
 let currentFacingMode = "environment";
+let currentDeviceId = null;
 let currentViewerPhotoId = null;
 let currentViewerUrl = null;
 let lastPhotoId = null;
@@ -93,6 +95,58 @@ function isCameraSupported() {
   );
 }
 
+async function enumerateCameras() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    return [];
+  }
+
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices.filter((d) => d.kind === "videoinput");
+}
+
+async function populateCameraSelect() {
+  const cameras = await enumerateCameras();
+
+  cameraSelect.innerHTML = "";
+
+  if (cameras.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "카메라 없음";
+    cameraSelect.appendChild(option);
+    cameraSelect.disabled = true;
+    return;
+  }
+
+  for (let i = 0; i < cameras.length; i++) {
+    const cam = cameras[i];
+    const option = document.createElement("option");
+    option.value = cam.deviceId;
+    option.textContent = cam.label || `카메라 ${i + 1}`;
+    cameraSelect.appendChild(option);
+  }
+
+  if (currentDeviceId) {
+    cameraSelect.value = currentDeviceId;
+  }
+
+  cameraSelect.disabled = cameras.length <= 1;
+}
+
+cameraSelect.addEventListener("change", async () => {
+  const deviceId = cameraSelect.value;
+  if (!deviceId || deviceId === currentDeviceId) return;
+
+  if (stream) {
+    for (const track of stream.getTracks()) {
+      track.stop();
+    }
+  }
+
+  currentDeviceId = deviceId;
+  await startCamera();
+});
+
 function syncPreviewAspectRatio() {
   // 앱 스타일에서는 전체 화면을 채우므로 별도 비율 조정 불필요
   return true;
@@ -151,13 +205,28 @@ async function startCamera() {
   shutterBtn.disabled = true;
 
   try {
+    const videoConstraints = currentDeviceId
+      ? { deviceId: { exact: currentDeviceId } }
+      : { facingMode: currentFacingMode };
+
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: currentFacingMode },
+      video: videoConstraints,
       audio: false,
     });
 
+    // 현재 활성 카메라의 deviceId를 기록
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      const settings = videoTrack.getSettings();
+      if (settings.deviceId) {
+        currentDeviceId = settings.deviceId;
+      }
+    }
+
     videoEl.srcObject = stream;
     setupVideoReadySync();
+
+    await populateCameraSelect();
 
     cameraPlaceholder.classList.add("hidden");
     setStatus("촬영 준비", "connected");
@@ -176,13 +245,23 @@ async function startCamera() {
 }
 
 async function switchCamera() {
+  const cameras = await enumerateCameras();
+
   if (stream) {
     for (const track of stream.getTracks()) {
       track.stop();
     }
   }
 
-  currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+  if (cameras.length > 1 && currentDeviceId) {
+    const currentIndex = cameras.findIndex((c) => c.deviceId === currentDeviceId);
+    const nextIndex = (currentIndex + 1) % cameras.length;
+    currentDeviceId = cameras[nextIndex].deviceId;
+  } else {
+    currentDeviceId = null;
+    currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+  }
+
   await startCamera();
 }
 

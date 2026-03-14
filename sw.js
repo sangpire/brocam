@@ -1,4 +1,4 @@
-const CACHE_NAME = "web-cam-shell-v4";
+const CACHE_NAME = "web-cam-shell-v5";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",
