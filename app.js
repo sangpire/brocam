@@ -206,8 +206,16 @@ async function startCamera() {
 
   try {
     const videoConstraints = currentDeviceId
-      ? { deviceId: { exact: currentDeviceId } }
-      : { facingMode: currentFacingMode };
+      ? {
+          deviceId: { exact: currentDeviceId },
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
+        }
+      : {
+          facingMode: currentFacingMode,
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
+        };
 
     stream = await navigator.mediaDevices.getUserMedia({
       video: videoConstraints,
@@ -273,11 +281,36 @@ function triggerFlash() {
   flashOverlay.classList.add("flash");
 }
 
-function capturePhoto() {
+function handleCaptureSuccess(id, blob) {
+  addGalleryItem(id, blob);
+  galleryEmpty.hidden = true;
+  updatePhotoCount();
+  updateLastPhotoThumb(id, blob);
+}
+
+async function capturePhoto() {
   if (!stream || !videoEl.srcObject) {
     return;
   }
 
+  const videoTrack = stream.getVideoTracks()[0];
+  if (!videoTrack) return;
+
+  // 1. ImageCapture API 시도 (가장 높은 해상도)
+  if ("ImageCapture" in window) {
+    try {
+      const imageCapture = new ImageCapture(videoTrack);
+      const blob = await imageCapture.takePhoto();
+      triggerFlash();
+      const id = await savePhoto(blob);
+      handleCaptureSuccess(id, blob);
+      return;
+    } catch (e) {
+      console.warn("ImageCapture 실패, 캔버스 방식으로 대체합니다.", e);
+    }
+  }
+
+  // 2. 캔버스 기반 캡처 (Fallback)
   if (videoEl.videoWidth === 0 || videoEl.videoHeight === 0) {
     return;
   }
@@ -305,10 +338,7 @@ function capturePhoto() {
 
       savePhoto(blob)
         .then((id) => {
-          addGalleryItem(id, blob);
-          galleryEmpty.hidden = true;
-          updatePhotoCount();
-          updateLastPhotoThumb(id, blob);
+          handleCaptureSuccess(id, blob);
         })
         .catch(() => {
           setStatus("저장 실패", "error");
