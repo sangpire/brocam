@@ -2,6 +2,12 @@
 
 BROCAM은 미니멀하고 산업적인 디자인 언어를 가진 고성능 웹 카메라 PWA(Progressive Web App)입니다. 라이카(Leica)의 미학에서 영감을 받아 흑백의 높은 대비와 강렬한 레드 포인트를 특징으로 하며, 외부 의존성 없이 Vanilla JavaScript와 브라우저 표준 API만으로 구현되었습니다.
 
+---
+
+### 🚀 [BROCAM 라이브 데모 바로가기](https://sangpire.github.io/brocam/)
+
+---
+
 ## 핵심 컨셉
 
 - **미니멀리즘 & 산업 디자인**: 불필요한 장식을 배제하고 기능에 집중한 UI.
