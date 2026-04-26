@@ -1,89 +1,60 @@
-# brocam (학습용)
+# BROCAM
 
-Vanilla HTML/CSS/JavaScript로 PWA 핵심 개념을 단계적으로 학습하기 위한 예제 프로젝트입니다.
+BROCAM은 미니멀하고 산업적인 디자인 언어를 가진 고성능 웹 카메라 PWA(Progressive Web App)입니다. 라이카(Leica)의 미학에서 영감을 받아 흑백의 높은 대비와 강렬한 레드 포인트를 특징으로 하며, 외부 의존성 없이 Vanilla JavaScript와 브라우저 표준 API만으로 구현되었습니다.
 
-## 목표
+## 핵심 컨셉
 
-- `getUserMedia`로 카메라 접근 이해
-- `<canvas>` 기반 사진 캡처 이해
-- 이후 단계에서 PWA 필수 요소(Manifest, Service Worker, 오프라인) 확장
+- **미니멀리즘 & 산업 디자인**: 불필요한 장식을 배제하고 기능에 집중한 UI.
+- **고해상도 촬영**: 브라우저가 지원하는 최대 해상도(최적 4K)로 사진을 캡처합니다.
+- **로컬 우선(Local-first)**: 모든 사진은 브라우저 내부의 IndexedDB에 안전하게 저장됩니다.
+- **PWA**: 서비스 워커를 통한 오프라인 지원 및 앱 설치 기능을 제공합니다.
 
-## 현재 구현 상태
+## 주요 기능
 
-- 1단계: 카메라 미리보기 (`<video>`)
-- 2단계: 사진 캡처 후 화면 표시 (`<canvas>` -> `<img>`, 최신 1장)
+- **카메라 제어**: 전/후면 카메라 전환 및 다중 장치 선택 지원.
+- **고화질 캡처**: `ImageCapture` API와 `Canvas` 폴백을 사용하여 최상의 화질을 보장합니다.
+- **갤러리**: 촬영한 사진을 날짜순(최신순)으로 확인하고 관리할 수 있습니다.
+- **사진 뷰어**: 저장된 사진을 크게 보고, 개별 다운로드 및 삭제가 가능합니다.
+- **오프라인 모드**: 네트워크 연결이 없는 상태에서도 앱을 실행하고 갤러리를 확인할 수 있습니다.
 
-## 실행 방법
+## 기술 스택 및 원칙
 
-카메라 API는 `HTTPS` 또는 `localhost`에서 동작하므로, 로컬 서버로 실행해야 합니다.
+- **언어**: HTML5, CSS3, Vanilla JavaScript (ES6+)
+- **저장소**: IndexedDB (`db.js`)
+- **PWA**: Service Worker (`sw.js`), Web Manifest (`manifest.webmanifest`)
+- **디자인 가이드**:
+  - **Typography**: Geometric Sans-serif ('Inter')
+  - **Color**: Black (#000000), White (#FFFFFF), Leica Red (#D4001A)
+  - **Shape**: 날카로운 모서리 (2px border-radius)
+  - **Interaction**: 상단 케이스 위주의 기술적 레이블 및 대문자 표기
 
-방법 1) `python3` 사용
+## 설치 및 실행 방법
+
+BROCAM은 카메라 API 보안 정책에 따라 `HTTPS` 또는 `localhost` 환경에서만 동작합니다.
+
+### 로컬 실행
+
+1. 저장소를 클론합니다.
+2. 로컬 서버를 실행합니다.
 
 ```bash
-cd /Users/sangpire/codes/brocam
+# Python 사용 시
 python3 -m http.server 8080
-```
 
-방법 2) `npx` 사용
-
-```bash
-cd /Users/sangpire/codes/brocam
+# Node.js serve 사용 시
 npx serve -l 8080
 ```
 
-브라우저에서 `http://localhost:8080` 접속 후 아래 순서로 확인합니다.
+3. 브라우저에서 `http://localhost:8080`에 접속합니다.
 
-1. `카메라 시작` 클릭
-2. 권한 허용
-3. `사진 캡처` 클릭
+## 프로젝트 구조
 
-## Manifest/SW 점검 절차
+- `index.html`: 앱의 구조 및 탭 레이아웃 정의
+- `styles.css`: 산업 디자인 컨셉의 스타일링 및 반응형 레이아웃
+- `app.js`: 카메라 제어, 캡처 로직, UI 인터랙션 및 서비스 워커 등록
+- `db.js`: IndexedDB를 이용한 사진 데이터 영속성 관리
+- `sw.js`: 오프라인 캐싱 및 리소스 관리
 
-1. Chrome DevTools > Application > Manifest에서 앱 메타데이터 확인
-2. Chrome DevTools > Application > Service Workers에서 `sw.js` 등록/활성 상태 확인
-3. 온라인에서 1회 로드 후 DevTools > Network를 `Offline`으로 전환
-4. 새로고침 시 앱 셸(`index.html`, `styles.css`, `app.js`)이 캐시로 로드되는지 확인
+## 라이선스
 
-## 파일 구조
-
-- `index.html`: 화면 구조(비디오, 버튼, 캡처 결과 영역)
-- `styles.css`: 레이아웃/반응형/캡처 결과 스타일
-- `app.js`: 카메라 시작, 권한 처리, 캡처 로직
-
-## 동작 요약
-
-- 카메라 시작 성공 시 캡처 버튼 활성화
-- 캡처 시 현재 비디오 프레임을 캔버스에 그린 뒤 PNG 데이터 URL로 결과 이미지 표시
-- 권한 거부/장치 없음/미지원 브라우저 예외 메시지 처리
-
-## PWA 구성요소(3단계)
-
-- `manifest.webmanifest`: 앱 이름, 실행 방식, 테마 색상 등 메타데이터 정의
-- `sw.js`: 앱 셸 리소스 캐시 및 오프라인 대응을 위한 Service Worker
-- `app.js` 등록 로직: 지원 브라우저 + 보안 컨텍스트에서 Service Worker 등록
-
-## GitHub Pages 배포
-
-1. 저장소 루트에 `.github/workflows/deploy-pages.yml`이 있는지 확인합니다.
-2. `main` 브랜치로 push합니다.
-3. GitHub 저장소 `Settings > Pages`에서 `Build and deployment > Source`를 `GitHub Actions`로 선택합니다.
-4. `Actions` 탭에서 `Deploy GitHub Pages` 워크플로가 성공하면 배포 URL이 생성됩니다.
-
-현재는 `https://sangpire.github.io/brocam/` 에서 확인할 수 있습니다.
-초기 배포 반영에는 보통 1~5분 정도 소요됩니다.
-
-### 배포 후 검증 체크리스트
-
-- [ ] 배포 URL 접속 시 `index.html`, `styles.css`, `app.js`, `manifest.webmanifest`가 정상 응답한다.
-- [ ] Chrome DevTools > Application > Manifest에서 앱 메타데이터와 아이콘(`192x192`, `512x512`)이 보인다.
-- [ ] Chrome DevTools > Application > Service Workers에서 `sw.js`가 등록/활성 상태다.
-- [ ] 온라인에서 1회 접속 후 Network를 `Offline`으로 바꾸고 새로고침해도 앱 셸이 열린다.
-- [ ] `카메라 시작` 버튼으로 권한 요청이 뜨고, 허용 시 미리보기/캡처가 동작한다.
-- [ ] 카메라 권한을 거부하면 안내 문구가 표시된다.
-
-## 다음 학습 단계(권장)
-
-1. `manifest.webmanifest` 추가
-2. `service worker` 등록 및 앱 셸 캐시
-3. 오프라인 동작 확인(DevTools Application 탭)
-4. 필요 시 IndexedDB 기반 캡처 이미지 저장
+이 프로젝트는 MIT 라이선스에 따라 자유롭게 사용 및 수정이 가능합니다.
